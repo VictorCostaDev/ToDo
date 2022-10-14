@@ -61,28 +61,26 @@ app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
   const { id } = request.params;
   const { title, deadline } = request.body;
 
-  if (!user.todos.length) return response.status(400).json({"error": "user has no task registered"});
+  if (!user.todos.length) return response.status(404).json({"error": "user has no task registered"});
 
   user.todos.forEach( todo => {
     if (todo.id === id) {
       todo.title = title;
-      todo.deadline = deadline
+      todo.deadline = new Date(deadline);
     }
   });
 
-  return response.status(200).json({"message": "successfully updated"});
+  return response.status(200).send();
 });
 
 app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
   const { user } = request;
   const { id } = request.params;
 
-  if (!user.todos.length) return response.status(400).json({"error": "user has no task registered"});
+  if (!user.todos.length) return response.status(404).json({"error": "user has no task registered"});
 
   user.todos.forEach( todo => {
-    if (todo.id === id) {
-      (todo.done) ? todo.done = false : todo.done = true;
-    }
+    if (todo.id === id) todo.done = true;
   });
 
   return response.status(200).send();
@@ -92,15 +90,13 @@ app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
   const { user } = request;
   const { id } = request.params;
 
-  if (!user.todos.length) return response.status(400).json({"error": "user has no task registered"});
-
-  console.log(user.todos);
+  if (!user.todos.length) return response.status(404).json({"error": "user has no task registered"});
 
   user.todos.forEach( (todo, index) => {
     if (todo.id === id) user.todos.splice(index, 1);
   });
 
-  return response.status(200).json({"message": "task deleted successfully"});
+  return response.status(204).send();
 });
 
 module.exports = app;
