@@ -26,12 +26,12 @@ app.post('/users', (request, response) => {
   const user = { id: uuidv4(), name, username, todos: [] };
   users.push(user);
 
-  response.status(201).send(user);
+  return response.status(201).send(user);
 });
 
 app.get('/todos', checksExistsUserAccount, (request, response) => {
   const { user } = request;
-  response.send(user.todos);
+  return response.send(user.todos);
 });
 
 app.post('/todos', checksExistsUserAccount, (request, response) => {
@@ -48,13 +48,15 @@ app.post('/todos', checksExistsUserAccount, (request, response) => {
 
   user.todos.push(todo);
 
-  response.status(201).send(todo);
+  return response.status(201).send(todo);
 });
 
 app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
   const { user } = request;
   const { id } = request.params;
   const { title, deadline } = request.body;
+
+  if (!user.todos.length) return response.status(400).json({"error": "user has no task registered"});
 
   user.todos.forEach( todo => {
     if (todo.id === id) {
@@ -63,15 +65,37 @@ app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
     }
   });
 
-  response.status(200).json({"message": "successfully updated"});
+  return response.status(200).json({"message": "successfully updated"});
 });
 
 app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
+  const { user } = request;
+  const { id } = request.params;
+
+  if (!user.todos.length) return response.status(400).json({"error": "user has no task registered"});
+
+  user.todos.forEach( todo => {
+    if (todo.id === id) {
+      (todo.done) ? todo.done = false : todo.done = true;
+    }
+  });
+
+  return response.status(200).send();
 });
 
 app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
+  const { user } = request;
+  const { id } = request.params;
+
+  if (!user.todos.length) return response.status(400).json({"error": "user has no task registered"});
+
+  console.log(user.todos);
+
+  user.todos.forEach( (todo, index) => {
+    if (todo.id === id) user.todos.splice(index, 1);
+  });
+
+  return response.status(200).json({"message": "task deleted successfully"});
 });
 
 module.exports = app;
